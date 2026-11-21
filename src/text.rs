@@ -5,32 +5,35 @@
 //!
 //! ```ini
 //! [w3i]
-//! version=25 // The Frozen Throne
+//! version=25
 //! saves=12
 //! name="TRIGSTR_001"
-//! flags=0x00008C14 // melee map, ...
+//! flags=0x00008C14
 //! tileset=L
 //! ...
 //!
 //! [player]
-//! number=0 // Player 1
-//! type=1 // human
-//! race=1 // human
+//! number=0
+//! type=1
+//! race=1
 //! name="TRIGSTR_008"
 //! ...
 //!
 //! [force]
-//! flags=0x00000003 // allied, allied victory
-//! players=0x00000003 // 1, 2
+//! flags=0x00000003
+//! players=0x00000003
 //! name="TRIGSTR_011"
 //! ```
 //!
 //! Strings are quoted, with escapes for what BNI can't hold
-//! ([`bni_rs::string`]). Player masks and flags are hex; the comment after
-//! a value says what it means and isn't read. Numbers are written as the
-//! shortest decimal that reads back as the same `f32`, so the text gives
-//! back the exact bytes. A field the version doesn't have is an error; one
-//! left out takes its default ([`Info::new`]).
+//! ([`bni_rs::string`]). Player masks and flags are hex. What a value
+//! means (a race, a flag, a player's number) isn't in the text: the
+//! tables are the crate's ([`RACES`](crate::RACES), [`FLAGS`](crate::FLAGS)
+//! ...), with the keys of World Editor's strings, for an editor to show
+//! in the game's language. Numbers are written as the shortest decimal
+//! that reads back as the same `f32`, so the text gives back the exact
+//! bytes. A field the version doesn't have is an error; one left out
+//! takes its default ([`Info::new`]).
 
 use bni_rs::Document;
 use bni_rs::ast::{Field, Item, Section};
@@ -38,8 +41,8 @@ use bni_rs::string::{quote, unquote};
 use parser_rs::{ParseError, Span};
 
 use crate::{
-    Cut, FLAGS, FORCE_FLAGS, Force, Has, Info, ItemTable, Part, Player, Rawcode, Tech, UnitTable,
-    Upgrade, VERSIONS, describe,
+    Cut, Force, Has, Info, ItemTable, Part, Player, Rawcode, Tech, UnitTable, Upgrade, VERSIONS,
+    describe,
 };
 
 /// The first section's name.
@@ -47,18 +50,15 @@ pub const HEADER: &str = "w3i";
 
 // ---------------------------------------------------------------- writing
 
-/// Lines of `key=value`, with a comment after the value when there's one.
+/// Lines of `key=value`.
 struct Out(String);
 
 impl Out {
-    fn line(&mut self, key: &str, value: impl std::fmt::Display, note: Option<String>) {
-        match note.filter(|n| !n.is_empty()) {
-            Some(n) => self.0 += &format!("{key}={value} // {n}\n"),
-            None => self.0 += &format!("{key}={value}\n"),
-        }
+    fn line(&mut self, key: &str, value: impl std::fmt::Display) {
+        self.0 += &format!("{key}={value}\n");
     }
     fn str(&mut self, key: &str, s: &str) {
-        self.line(key, quote(s), None);
+        self.line(key, quote(s));
     }
     fn section(&mut self, name: &str) {
         self.0 += &format!("\n[{name}]\n");
@@ -105,77 +105,28 @@ fn letter(b: u8) -> String {
     }
 }
 
-/// The names of the bits set, and what's left unnamed in hex.
-fn bits(n: u32, names: &[(u32, &str)]) -> String {
-    let mut out: Vec<String> = names
-        .iter()
-        .filter(|(b, _)| n & b != 0)
-        .map(|(_, name)| name.to_string())
-        .collect();
-    let rest = names.iter().fold(n, |n, (b, _)| n & !b);
-    if rest != 0 {
-        out.push(format!("other bits 0x{rest:X}"));
-    }
-    out.join(", ")
-}
-
-/// The players of a mask, counting from 1.
-fn players(mask: u32) -> String {
-    (0..32)
-        .filter(|i| mask & (1 << i) != 0)
-        .map(|i| (i + 1).to_string())
-        .collect::<Vec<_>>()
-        .join(", ")
-}
-
-fn named(n: i64, names: &[&str]) -> Option<String> {
-    usize::try_from(n)
-        .ok()
-        .and_then(|i| names.get(i))
-        .filter(|s| !s.is_empty())
-        .map(|s| s.to_string())
-}
-
-const PLAYER_TYPES: [&str; 5] = ["", "human", "computer", "neutral", "rescuable"];
-const RACES: [&str; 5] = ["selectable", "human", "orc", "undead", "night elf"];
-const COLUMNS: [&str; 3] = ["unit", "building", "item"];
-const FOG_STYLES: [&str; 4] = ["none", "linear", "exponential", "exponential squared"];
-
 /// The text form of `info`.
 pub fn to_text(i: &Info) -> String {
     let has = i.has();
     let mut o = Out(String::new());
-    o.0 += "// Warcraft III map info (war3map.w3i): the Scenario menu's settings.\n";
     o.0 += &format!("[{HEADER}]\n");
-    o.line("version", i.version, Some(describe(i.version).into()));
-    o.line("saves", i.saves, None);
-    o.line("editor_version", i.editor_version, None);
+    o.line("version", i.version);
+    o.line("saves", i.saves);
+    o.line("editor_version", i.editor_version);
     if has.v28 {
-        o.line(
-            "game_version",
-            ints(&i.game_version),
-            Some("major, minor, patch, build".into()),
-        );
+        o.line("game_version", ints(&i.game_version));
     }
     o.str("name", &i.name);
     o.str("author", &i.author);
     o.str("description", &i.description);
     o.str("players_recommended", &i.players_recommended);
-    o.line(
-        "camera_bounds",
-        reals(&i.camera_bounds),
-        Some("x,y: bottom left, top right, top left, bottom right".into()),
-    );
-    o.line(
-        "camera_complements",
-        ints(&i.camera_complements),
-        Some("left, right, bottom, top".into()),
-    );
-    o.line("playable_width", i.playable_width, None);
-    o.line("playable_height", i.playable_height, None);
-    o.line("flags", hex(i.flags), Some(bits(i.flags, &FLAGS)));
-    o.line("tileset", letter(i.tileset), None);
-    o.line("loading_screen", i.loading_screen, None);
+    o.line("camera_bounds", reals(&i.camera_bounds));
+    o.line("camera_complements", ints(&i.camera_complements));
+    o.line("playable_width", i.playable_width);
+    o.line("playable_height", i.playable_height);
+    o.line("flags", hex(i.flags));
+    o.line("tileset", letter(i.tileset));
+    o.line("loading_screen", i.loading_screen);
     if has.tft {
         o.str("loading_screen_model", &i.loading_screen_model);
     }
@@ -183,135 +134,95 @@ pub fn to_text(i: &Info) -> String {
     o.str("loading_title", &i.loading_title);
     o.str("loading_subtitle", &i.loading_subtitle);
     if has.tft {
-        o.line("game_data_set", i.game_data_set, None);
+        o.line("game_data_set", i.game_data_set);
         o.str("prologue_path", &i.prologue_path);
     } else {
-        o.line("prologue_screen", i.prologue_screen, None);
+        o.line("prologue_screen", i.prologue_screen);
     }
     o.str("prologue_text", &i.prologue_text);
     o.str("prologue_title", &i.prologue_title);
     o.str("prologue_subtitle", &i.prologue_subtitle);
     if has.tft {
-        o.line(
-            "fog_style",
-            i.fog.style,
-            named(i.fog.style.into(), &FOG_STYLES),
-        );
-        o.line("fog_start_z", real(i.fog.start_z), None);
-        o.line("fog_end_z", real(i.fog.end_z), None);
-        o.line("fog_density", real(i.fog.density), None);
-        o.line(
-            "fog_color",
-            ints(&i.fog.color),
-            Some("red, green, blue, alpha".into()),
-        );
-        o.line(
-            "weather",
-            code(i.weather),
-            i.weather.is_none().then(|| "none".into()),
-        );
+        o.line("fog_style", i.fog.style);
+        o.line("fog_start_z", real(i.fog.start_z));
+        o.line("fog_end_z", real(i.fog.end_z));
+        o.line("fog_density", real(i.fog.density));
+        o.line("fog_color", ints(&i.fog.color));
+        o.line("weather", code(i.weather));
         o.str("sound_environment", &i.sound_environment);
-        o.line("light_tileset", letter(i.light_tileset), None);
-        o.line(
-            "water_color",
-            ints(&i.water_color),
-            Some("red, green, blue, alpha".into()),
-        );
+        o.line("light_tileset", letter(i.light_tileset));
+        o.line("water_color", ints(&i.water_color));
     }
     if has.v28 {
-        o.line("script", i.script, named(i.script.into(), &["JASS", "Lua"]));
+        o.line("script", i.script);
     }
     if has.v31 {
-        o.line(
-            "supported_modes",
-            i.supported_modes,
-            named(i.supported_modes.into(), &["", "SD", "HD", "SD and HD"]),
-        );
-        o.line("game_data_version", i.game_data_version, None);
+        o.line("supported_modes", i.supported_modes);
+        o.line("game_data_version", i.game_data_version);
     }
     if let Some(cut) = &i.cut {
-        o.line(
-            "cut",
-            cut.after.name(),
-            Some("the file stops after these, as a map optimizer left it".into()),
-        );
-        o.line("cut_bytes", ints(&cut.bytes), None);
+        o.line("cut", cut.after.name());
+        o.line("cut_bytes", ints(&cut.bytes));
     }
 
     for p in &i.players {
         o.section("player");
-        o.line(
-            "number",
-            p.number,
-            Some(format!("Player {}", i64::from(p.number) + 1)),
-        );
-        o.line("type", p.kind, named(p.kind.into(), &PLAYER_TYPES));
-        o.line("race", p.race, named(p.race.into(), &RACES));
-        o.line("fixed_start", p.fixed_start, None);
+        o.line("number", p.number);
+        o.line("type", p.kind);
+        o.line("race", p.race);
+        o.line("fixed_start", p.fixed_start);
         o.str("name", &p.name);
-        o.line("start_x", real(p.start_x), None);
-        o.line("start_y", real(p.start_y), None);
-        o.line("ally_low", hex(p.ally_low), Some(players(p.ally_low)));
-        o.line("ally_high", hex(p.ally_high), Some(players(p.ally_high)));
+        o.line("start_x", real(p.start_x));
+        o.line("start_y", real(p.start_y));
+        o.line("ally_low", hex(p.ally_low));
+        o.line("ally_high", hex(p.ally_high));
         if has.v31 {
-            o.line("enemy_low", hex(p.enemy_low), Some(players(p.enemy_low)));
-            o.line("enemy_high", hex(p.enemy_high), Some(players(p.enemy_high)));
+            o.line("enemy_low", hex(p.enemy_low));
+            o.line("enemy_high", hex(p.enemy_high));
         }
     }
     for f in &i.forces {
         o.section("force");
-        o.line("flags", hex(f.flags), Some(bits(f.flags, &FORCE_FLAGS)));
-        o.line("players", hex(f.players), Some(players(f.players)));
+        o.line("flags", hex(f.flags));
+        o.line("players", hex(f.players));
         o.str("name", &f.name);
     }
     for u in &i.upgrades {
         o.section("upgrade");
-        o.line("players", hex(u.players), Some(players(u.players)));
-        o.line("id", code(u.id), None);
-        o.line("level", u.level, None);
-        o.line(
-            "availability",
-            u.availability,
-            named(
-                u.availability.into(),
-                &["unavailable", "available", "researched"],
-            ),
-        );
+        o.line("players", hex(u.players));
+        o.line("id", code(u.id));
+        o.line("level", u.level);
+        o.line("availability", u.availability);
     }
     for t in &i.techs {
         o.section("tech");
-        o.line("players", hex(t.players), Some(players(t.players)));
-        o.line("id", code(t.id), None);
+        o.line("players", hex(t.players));
+        o.line("id", code(t.id));
     }
     for t in &i.unit_tables {
         o.section("unit_table");
-        o.line("number", t.number, None);
+        o.line("number", t.number);
         o.str("name", &t.name);
-        let kinds: Vec<String> = t
-            .columns
-            .iter()
-            .map(|&c| named(c.into(), &COLUMNS).unwrap_or_else(|| c.to_string()))
-            .collect();
-        o.line("columns", ints(&t.columns), Some(kinds.join(", ")));
+        o.line("columns", ints(&t.columns));
         for (chance, ids) in &t.rows {
             let mut value = chance.to_string();
             for &id in ids {
                 value += ",";
                 value += &code(id);
             }
-            o.line("row", value, None);
+            o.line("row", value);
         }
     }
     for t in &i.item_tables {
         o.section("item_table");
-        o.line("number", t.number, None);
+        o.line("number", t.number);
         o.str("name", &t.name);
         for set in &t.sets {
             let value: Vec<String> = set
                 .iter()
                 .map(|&(chance, id)| format!("{chance},{}", code(id)))
                 .collect();
-            o.line("set", value.join(","), None);
+            o.line("set", value.join(","));
         }
     }
     o.0

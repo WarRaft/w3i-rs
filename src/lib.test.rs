@@ -118,6 +118,11 @@ fn bad_files() {
 #[test]
 fn flags() {
     assert_eq!(flag_names(0x8004), ["melee map", "use item classification system"]);
+    let (set, rest) = bits(&FORCE_FLAGS, 0x4B);
+    assert_eq!(set.iter().map(|m| m.2).collect::<Vec<_>>(), ["WESTRING_ALLIED", "WESTRING_ALLIEDVICTORY", "WESTRING_SHAREVISION"]);
+    assert_eq!(rest, 0x40);
+    assert_eq!(meaning(&RACES, 4), Some((4, "night elf", "WESTRING_RACE_NIGHTELF")));
+    assert_eq!(meaning(&RACES, 9), None);
     assert_eq!(describe(31), "1.32 and later");
 }
 

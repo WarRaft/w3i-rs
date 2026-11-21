@@ -27,20 +27,22 @@ fn text_reads_back_to_the_same_bytes() {
     }
     let text = to_text(&full(31));
     for line in [
-        "version=31 // 1.32 and later\n",
+        "version=31\n",
         "description=\"Line one\"\\n\"Line two // not a comment\"\n",
         "author=\"Me, \"\\u{22}\"quoted\"\\u{22}\n",
-        "flags=0x80008C14 // melee map, masked areas are partially visible, map properties menu opened at least once, show water waves on cliff shores, use item classification system, other bits 0x80000000\n",
+        "flags=0x80008C14\n",
         "tileset=L\n",
         "weather=RAhr\n",
         "light_tileset=A\n",
         "start_y=0x7FC00001\n",
-        "[force]\nflags=0x0000000B // allied, allied victory, shared vision\nplayers=0x00000003 // 1, 2\n",
-        "columns=0,2 // unit, item\nrow=50,hfoo,0x00000000\n",
+        "[force]\nflags=0x0000000B\nplayers=0x00000003\n",
+        "columns=0,2\nrow=50,hfoo,0x00000000\n",
         "set=10,ratf,90,rde1\nset=\n",
     ] {
         assert!(text.contains(line), "{line:?} in\n{text}");
     }
+    // No comments: what a value means is for the editor to show.
+    assert!(text.lines().all(|l| !l.contains("//") || l.starts_with("description=")), "{text}");
 }
 
 #[test]
@@ -62,7 +64,7 @@ fn cut_files() {
     let bytes = i.to_bytes().unwrap();
     assert_eq!(crate::parse(&bytes).unwrap().to_bytes().unwrap(), bytes);
     let text = to_text(&i);
-    assert!(text.contains("cut=forces // "), "{text}");
+    assert!(text.contains("cut=forces\n"), "{text}");
     assert!(text.contains("cut_bytes=255\n"), "{text}");
     assert_eq!(back(&text).to_bytes().unwrap(), bytes);
     let e = errors(&format!("{text}\n[tech]\nid=hfoo\n"));

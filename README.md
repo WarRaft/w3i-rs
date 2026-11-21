@@ -99,31 +99,31 @@ and item table, in file order.
 
 ```ini
 [w3i]
-version=25 // The Frozen Throne
+version=25
 saves=17076
 name="TRIGSTR_001"
-camera_bounds=-5248,-10368,4992,4224,-5248,4224,4992,-10368 // x,y: bottom left, top right, top left, bottom right
-flags=0x0001DC68 // ..., use custom forces, ...
+camera_bounds=-5248,-10368,4992,4224,-5248,4224,4992,-10368
+flags=0x0001DC68
 tileset=C
-fog_color=0,0,0,255 // red, green, blue, alpha
-weather=0x00000000 // none
+fog_color=0,0,0,255
+weather=0x00000000
 
 [player]
-number=0 // Player 1
-type=1 // human
-race=1 // human
+number=0
+type=1
+race=1
 name="TRIGSTR_005"
-ally_high=0x000001FE // 2, 3, 4, 5, 6, 7, 8, 9
+ally_high=0x000001FE
 
 [force]
-flags=0x0000000B // allied, allied victory, shared vision
-players=0x000001FF // 1, 2, 3, 4, 5, 6, 7, 8, 9
+flags=0x0000000B
+players=0x000001FF
 name="TRIGSTR_004"
 
 [unit_table]
 number=0
 name="Group"
-columns=0,2 // unit, item
+columns=0,2
 row=50,hfoo,YYI1
 
 [item_table]
@@ -132,9 +132,13 @@ name="Drops"
 set=10,ratf,90,rde1
 ```
 
-- The comment after a value says what it means; it isn't read. Names
-  from the game's files (the tilesets') aren't in the text: an editor
-  shows them, as the wc3-rs editor does with inlay hints.
+- What a value means isn't in the text: an editor shows it, as the
+  wc3-rs editor does with inlay hints. The crate has the tables of what
+  the format's values mean (`FLAGS`, `FORCE_FLAGS`, `PLAYER_TYPES`,
+  `RACES`, `FOG_STYLES`, `AVAILABILITY`, `COLUMNS`, `SCRIPTS`, `MODES`),
+  each value with an English name and the key of World Editor's string
+  for it (`WESTRING_RACE_HUMAN`), so an editor shows the game's words, in
+  the game's language. The tilesets' names are the game's files' alone.
 - Strings are quoted. A line break or `"` goes between quoted parts as an
   escape, `"Line one"\n"Line two"` (`bni_rs::string`).
 - Masks and flags are hex; numbers are the shortest decimal that reads

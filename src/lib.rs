@@ -254,45 +254,105 @@ pub struct Info {
     pub cut: Option<Cut>,
 }
 
+/// A value's meaning: the value, its name in English, and the key of
+/// World Editor's string for it (`UI\WorldEditStrings.txt`), empty when
+/// the editor has none. An editor shows the game's string, in the game's
+/// language, and the English name without the game's files.
+pub type Meaning<T> = (T, &'static str, &'static str);
+
 /// The flags World Editor sets, by bit; the rest are kept as they are.
-pub const FLAGS: [(u32, &str); 19] = [
-    (0x0000_0001, "hide minimap in preview screens"),
-    (0x0000_0002, "modify ally priorities"),
-    (0x0000_0004, "melee map"),
-    (0x0000_0008, "playable map size was large and never reduced"),
-    (0x0000_0010, "masked areas are partially visible"),
-    (0x0000_0020, "fixed player settings for custom forces"),
-    (0x0000_0040, "use custom forces"),
-    (0x0000_0080, "use custom tech tree"),
-    (0x0000_0100, "use custom abilities"),
-    (0x0000_0200, "use custom upgrades"),
-    (0x0000_0400, "map properties menu opened at least once"),
-    (0x0000_0800, "show water waves on cliff shores"),
-    (0x0000_1000, "show water waves on rolling shores"),
-    (0x0000_2000, "use terrain fog"),
-    (0x0000_4000, "requires The Frozen Throne"),
-    (0x0000_8000, "use item classification system"),
-    (0x0001_0000, "use water tinting color"),
-    (0x0002_0000, "use accurate probability for calculations"),
-    (0x0004_0000, "use custom ability skins"),
+pub const FLAGS: [Meaning<u32>; 19] = [
+    (0x0000_0001, "hide minimap in preview screens", "WESTRING_MAPFLAG_HIDEMINIMAP"),
+    (0x0000_0002, "modify ally priorities", "WESTRING_ALLYPRI_CUSTOM"),
+    (0x0000_0004, "melee map", "WESTRING_STAT_MELEE"),
+    (0x0000_0008, "playable map size was large and never reduced", ""),
+    (0x0000_0010, "masked areas are partially visible", "WESTRING_MAPFLAG_USEDARKMASK"),
+    (0x0000_0020, "fixed player settings for custom forces", "WESTRING_USECUSTOMPLAYERS"),
+    (0x0000_0040, "use custom forces", "WESTRING_USECUSTOMFORCES"),
+    (0x0000_0080, "use custom tech tree", "WESTRING_USECUSTOMTECHTREE"),
+    (0x0000_0100, "use custom abilities", "WESTRING_USECUSTOMABILITIES"),
+    (0x0000_0200, "use custom upgrades", "WESTRING_USECUSTOMUPGRADES"),
+    (0x0000_0400, "map properties menu opened at least once", ""),
+    (0x0000_0800, "show water waves on cliff shores", "WESTRING_MAPFLAG_CLIFFWAVES"),
+    (0x0000_1000, "show water waves on rolling shores", "WESTRING_MAPFLAG_ROLLINGWAVES"),
+    (0x0000_2000, "use terrain fog", "WESTRING_MAPOPTIONS_USEFOG"),
+    (0x0000_4000, "requires The Frozen Throne", "WESTRING_MAPDESC_EXPANSION"),
+    (0x0000_8000, "use item classification system", "WESTRING_MAPFLAG_USEITEMCLASS"),
+    (0x0001_0000, "use water tinting color", "WESTRING_MAPOPTIONS_WATERCOLOR"),
+    (0x0002_0000, "use accurate probability for calculations", ""),
+    (0x0004_0000, "use custom ability skins", ""),
 ];
 
 /// A force's flags, by bit.
-pub const FORCE_FLAGS: [(u32, &str); 5] = [
-    (0x01, "allied"),
-    (0x02, "allied victory"),
-    (0x08, "shared vision"),
-    (0x10, "shared unit control"),
-    (0x20, "shared advanced unit control"),
+pub const FORCE_FLAGS: [Meaning<u32>; 5] = [
+    (0x01, "allied", "WESTRING_ALLIED"),
+    (0x02, "allied victory", "WESTRING_ALLIEDVICTORY"),
+    (0x08, "shared vision", "WESTRING_SHAREVISION"),
+    (0x10, "shared unit control", "WESTRING_SHARECONTROL"),
+    (0x20, "shared advanced unit control", "WESTRING_SHARECONTROLADV"),
 ];
 
-/// The names of the flags set in `flags`, in bit order.
+/// [`Player::kind`].
+pub const PLAYER_TYPES: [Meaning<i32>; 4] = [
+    (1, "user", "WESTRING_PLAYER_HUMAN"),
+    (2, "computer", "WESTRING_PLAYER_COMPUTER"),
+    (3, "neutral", "WESTRING_PLAYER_NEUTRAL"),
+    (4, "rescuable", "WESTRING_PLAYER_RESCUE"),
+];
+
+/// [`Player::race`].
+pub const RACES: [Meaning<i32>; 5] = [
+    (0, "selectable", "WESTRING_RACE_SELECTABLE"),
+    (1, "human", "WESTRING_RACE_HUMAN"),
+    (2, "orc", "WESTRING_RACE_ORC"),
+    (3, "undead", "WESTRING_RACE_UNDEAD"),
+    (4, "night elf", "WESTRING_RACE_NIGHTELF"),
+];
+
+/// [`Fog::style`].
+pub const FOG_STYLES: [Meaning<i32>; 4] = [
+    (0, "none", "WESTRING_NONE"),
+    (1, "linear", "WESTRING_FOGSTYLE_LINEAR"),
+    (2, "exponential", "WESTRING_FOGSTYLE_EXP1"),
+    (3, "exponential squared", "WESTRING_FOGSTYLE_EXP2"),
+];
+
+/// [`Upgrade::availability`].
+pub const AVAILABILITY: [Meaning<i32>; 3] = [
+    (0, "unavailable", "WESTRING_UPGRADE_UNAVAILABLE"),
+    (1, "available", "WESTRING_UPGRADE_AVAILABLE"),
+    (2, "researched", "WESTRING_UPGRADE_RESEARCHED"),
+];
+
+/// [`UnitTable::columns`].
+pub const COLUMNS: [Meaning<i32>; 3] = [
+    (0, "unit", "WESTRING_TECHTYPE_NORMAL"),
+    (1, "building", "WESTRING_TECHTYPE_BUILDING"),
+    (2, "item", "WESTRING_TECHTYPE_ITEM"),
+];
+
+/// [`Info::script`].
+pub const SCRIPTS: [Meaning<u32>; 2] = [(0, "JASS", ""), (1, "Lua", "")];
+
+/// [`Info::supported_modes`].
+pub const MODES: [Meaning<u32>; 3] = [(1, "SD", ""), (2, "HD", ""), (3, "SD and HD", "")];
+
+/// The meaning of `value` in `table`.
+pub fn meaning<T: PartialEq + Copy>(table: &[Meaning<T>], value: T) -> Option<Meaning<T>> {
+    table.iter().find(|(v, _, _)| *v == value).copied()
+}
+
+/// The meanings of the bits set in `flags`, in bit order, and the bits
+/// none names.
+pub fn bits(table: &[Meaning<u32>], flags: u32) -> (Vec<Meaning<u32>>, u32) {
+    let set = table.iter().filter(|(b, _, _)| flags & b != 0).copied().collect();
+    let rest = table.iter().fold(flags, |n, (b, _, _)| n & !b);
+    (set, rest)
+}
+
+/// The English names of the map flags set in `flags`, in bit order.
 pub fn flag_names(flags: u32) -> Vec<&'static str> {
-    FLAGS
-        .iter()
-        .filter(|(bit, _)| flags & bit != 0)
-        .map(|(_, name)| *name)
-        .collect()
+    bits(&FLAGS, flags).0.into_iter().map(|(_, name, _)| name).collect()
 }
 
 impl Info {
