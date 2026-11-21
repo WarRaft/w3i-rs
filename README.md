@@ -104,7 +104,7 @@ saves=17076
 name="TRIGSTR_001"
 camera_bounds=-5248,-10368,4992,4224,-5248,4224,4992,-10368 // x,y: bottom left, top right, top left, bottom right
 flags=0x0001DC68 // ..., use custom forces, ...
-tileset=C // Felwood
+tileset=C
 fog_color=0,0,0,255 // red, green, blue, alpha
 weather=0x00000000 // none
 
@@ -132,7 +132,9 @@ name="Drops"
 set=10,ratf,90,rde1
 ```
 
-- The comment after a value says what it means; it isn't read.
+- The comment after a value says what it means; it isn't read. Names
+  from the game's files (the tilesets') aren't in the text: an editor
+  shows them, as the wc3-rs editor does with inlay hints.
 - Strings are quoted. A line break or `"` goes between quoted parts as an
   escape, `"Line one"\n"Line two"` (`bni_rs::string`).
 - Masks and flags are hex; numbers are the shortest decimal that reads

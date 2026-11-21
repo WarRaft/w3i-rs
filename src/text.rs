@@ -9,7 +9,7 @@
 //! saves=12
 //! name="TRIGSTR_001"
 //! flags=0x00008C14 // melee map, ...
-//! tileset=L // Lordaeron Summer
+//! tileset=L
 //! ...
 //!
 //! [player]
@@ -141,35 +141,6 @@ const RACES: [&str; 5] = ["selectable", "human", "orc", "undead", "night elf"];
 const COLUMNS: [&str; 3] = ["unit", "building", "item"];
 const FOG_STYLES: [&str; 4] = ["none", "linear", "exponential", "exponential squared"];
 
-/// The base tilesets, by letter (as `w3e-rs` has them).
-const TILESETS: [(u8, &str); 18] = [
-    (b'A', "Ashenvale"),
-    (b'B', "Barrens"),
-    (b'K', "Black Citadel"),
-    (b'Y', "Cityscape"),
-    (b'X', "Dalaran"),
-    (b'J', "Dalaran Ruins"),
-    (b'D', "Dungeon"),
-    (b'C', "Felwood"),
-    (b'I', "Icecrown Glacier"),
-    (b'F', "Lordaeron Fall"),
-    (b'L', "Lordaeron Summer"),
-    (b'W', "Lordaeron Winter"),
-    (b'N', "Northrend"),
-    (b'O', "Outland"),
-    (b'Z', "Sunken Ruins"),
-    (b'G', "Underground"),
-    (b'V', "Village"),
-    (b'Q', "Village Fall"),
-];
-
-fn tileset_name(letter: u8) -> Option<String> {
-    TILESETS
-        .iter()
-        .find(|(l, _)| *l == letter)
-        .map(|(_, n)| n.to_string())
-}
-
 /// The text form of `info`.
 pub fn to_text(i: &Info) -> String {
     let has = i.has();
@@ -203,7 +174,7 @@ pub fn to_text(i: &Info) -> String {
     o.line("playable_width", i.playable_width, None);
     o.line("playable_height", i.playable_height, None);
     o.line("flags", hex(i.flags), Some(bits(i.flags, &FLAGS)));
-    o.line("tileset", letter(i.tileset), tileset_name(i.tileset));
+    o.line("tileset", letter(i.tileset), None);
     o.line("loading_screen", i.loading_screen, None);
     if has.tft {
         o.str("loading_screen_model", &i.loading_screen_model);
@@ -240,14 +211,7 @@ pub fn to_text(i: &Info) -> String {
             i.weather.is_none().then(|| "none".into()),
         );
         o.str("sound_environment", &i.sound_environment);
-        o.line(
-            "light_tileset",
-            letter(i.light_tileset),
-            match i.light_tileset {
-                0 => Some("the map's own".into()),
-                t => tileset_name(t),
-            },
-        );
+        o.line("light_tileset", letter(i.light_tileset), None);
         o.line(
             "water_color",
             ints(&i.water_color),
