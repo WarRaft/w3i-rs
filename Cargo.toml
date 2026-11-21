@@ -1,0 +1,18 @@
+[package]
+name = "w3i-rs"
+version = "0.1.0"
+edition = "2024"
+description = "Reader and writer for Warcraft III map info files (war3map.w3i)"
+license = "CC0-1.0"
+
+[[bin]]
+name = "w3i-rs"
+path = "src/main.rs"
+
+[lib]
+name = "w3i_rs"
+path = "src/lib.rs"
+
+[dependencies]
+parser-rs = { path = "../parser-rs" }
+bni-rs = { path = "../bni-rs" }
