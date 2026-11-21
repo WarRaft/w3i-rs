@@ -133,11 +133,9 @@ pub fn to_text(i: &Info) -> String {
     o.str("loading_text", &i.loading_text);
     o.str("loading_title", &i.loading_title);
     o.str("loading_subtitle", &i.loading_subtitle);
+    o.line("game_data_set", i.game_data_set);
     if has.tft {
-        o.line("game_data_set", i.game_data_set);
         o.str("prologue_path", &i.prologue_path);
-    } else {
-        o.line("prologue_screen", i.prologue_screen);
     }
     o.str("prologue_text", &i.prologue_text);
     o.str("prologue_title", &i.prologue_title);
@@ -437,19 +435,9 @@ fn header(section: &Section, e: &mut Errors) -> Info {
     f.string("loading_text", &mut i.loading_text, e);
     f.string("loading_title", &mut i.loading_title, e);
     f.string("loading_subtitle", &mut i.loading_subtitle, e);
-    if f.since(has.tft, "game_data_set", 25, version, e) {
-        f.int("game_data_set", &mut i.game_data_set, e);
-    }
+    f.int("game_data_set", &mut i.game_data_set, e);
     if f.since(has.tft, "prologue_path", 25, version, e) {
         f.string("prologue_path", &mut i.prologue_path, e);
-    }
-    if !has.tft {
-        f.int("prologue_screen", &mut i.prologue_screen, e);
-    } else if let Some(item) = f.one("prologue_screen", e) {
-        e.at(
-            item_span(item),
-            "`prologue_screen` is only in version 18 (Reign of Chaos); later ones have `prologue_path`",
-        );
     }
     f.string("prologue_text", &mut i.prologue_text, e);
     f.string("prologue_title", &mut i.prologue_title, e);

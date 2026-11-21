@@ -23,7 +23,7 @@ fn text_reads_back_to_the_same_bytes() {
         assert!(is_info_text(&bni_rs::parse(&text)));
         assert_eq!(text.contains("script="), v >= 28);
         assert_eq!(text.contains("[item_table]"), v >= 25);
-        assert_eq!(text.contains("prologue_screen="), v == 18);
+        assert_eq!(text.contains("prologue_path="), v >= 25);
     }
     let text = to_text(&full(31));
     for line in [
@@ -49,7 +49,7 @@ fn text_reads_back_to_the_same_bytes() {
 fn left_out_fields_take_the_defaults() {
     let i = back("[w3i]\nversion=18\nname=\"A\"\n[player]\nname=\"P\"\n");
     assert_eq!(i.version, 18);
-    assert_eq!((i.name.as_str(), i.loading_screen, i.prologue_screen), ("A", -1, -1));
+    assert_eq!((i.name.as_str(), i.loading_screen, i.game_data_set), ("A", -1, 0));
     assert_eq!(i.players[0].name, "P");
 }
 
@@ -74,11 +74,11 @@ fn cut_files() {
 #[test]
 fn errors_in_the_text() {
     let e = errors(
-        "[w3i]\nversion=25\nprologue_screen=1\nscript=1\ncamera_complements=1,2\nflags=x\nname=a,b\nfoo=1\n[player]\nenemy_low=1\n[unit_table]\ncolumns=0\nrow=1,hfoo,hfoo\n[what]\n",
+        "[w3i]\nversion=18\nprologue_path=\"x\"\nscript=1\ncamera_complements=1,2\nflags=x\nname=a,b\nfoo=1\n[player]\nenemy_low=1\n[unit_table]\ncolumns=0\nrow=1,hfoo,hfoo\n[what]\n",
     );
     let want = [
-        "3: `prologue_screen` is only in version 18",
-        "4: `script` is in version 28 (1.31) and later; this file is 25",
+        "3: `prologue_path` is in version 25",
+        "4: `script` is in version 28 (1.31) and later; this file is 18",
         "5: `camera_complements` has 4 values",
         "6: `flags`: a whole number",
         "7: `name` is one string",

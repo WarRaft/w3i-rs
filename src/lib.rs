@@ -216,10 +216,8 @@ pub struct Info {
     pub loading_text: String,
     pub loading_title: String,
     pub loading_subtitle: String,
-    /// The Frozen Throne: the game data set (0 the standard one).
+    /// The game data set (0 the standard one; maps also store -1).
     pub game_data_set: i32,
-    /// Reign of Chaos: which prologue screen, or -1.
-    pub prologue_screen: i32,
     /// The Frozen Throne: a custom prologue screen's path.
     pub prologue_path: String,
     pub prologue_text: String,
@@ -265,7 +263,7 @@ pub const FLAGS: [Meaning<u32>; 19] = [
     (0x0000_0001, "hide minimap in preview screens", "WESTRING_MAPFLAG_HIDEMINIMAP"),
     (0x0000_0002, "modify ally priorities", "WESTRING_ALLYPRI_CUSTOM"),
     (0x0000_0004, "melee map", "WESTRING_STAT_MELEE"),
-    (0x0000_0008, "playable map size was large and never reduced", ""),
+    (0x0000_0008, "use custom tileset", "WESTRING_MODTEX_USECUSTOM"),
     (0x0000_0010, "masked areas are partially visible", "WESTRING_MAPFLAG_USEDARKMASK"),
     (0x0000_0020, "fixed player settings for custom forces", "WESTRING_USECUSTOMPLAYERS"),
     (0x0000_0040, "use custom forces", "WESTRING_USECUSTOMFORCES"),
@@ -362,7 +360,6 @@ impl Info {
         Info {
             version,
             loading_screen: -1,
-            prologue_screen: -1,
             ..Info::default()
         }
     }
@@ -412,11 +409,9 @@ impl Info {
         w.cstr(&self.loading_text)?;
         w.cstr(&self.loading_title)?;
         w.cstr(&self.loading_subtitle)?;
+        w.i32(self.game_data_set);
         if has.tft {
-            w.i32(self.game_data_set);
             w.cstr(&self.prologue_path)?;
-        } else {
-            w.i32(self.prologue_screen);
         }
         w.cstr(&self.prologue_text)?;
         w.cstr(&self.prologue_title)?;
@@ -601,11 +596,9 @@ pub fn parse(bytes: &[u8]) -> BinResult<Info> {
     i.loading_text = r.cstr()?;
     i.loading_title = r.cstr()?;
     i.loading_subtitle = r.cstr()?;
+    i.game_data_set = r.i32()?;
     if has.tft {
-        i.game_data_set = r.i32()?;
         i.prologue_path = r.cstr()?;
-    } else {
-        i.prologue_screen = r.i32()?;
     }
     i.prologue_text = r.cstr()?;
     i.prologue_title = r.cstr()?;

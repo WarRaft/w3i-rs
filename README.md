@@ -32,7 +32,7 @@ there from that version on; 18 is Reign of Chaos, 25 The Frozen Throne,
 | i32 | loading screen number, -1 none |
 | string | (25) custom loading screen model |
 | string × 3 | loading screen text, title, subtitle |
-| i32 | (25) game data set; (18) prologue screen number |
+| i32 | game data set: 0 the standard one (maps store -1 too) |
 | string | (25) custom prologue screen path |
 | string × 3 | prologue text, title, subtitle |
 | i32, f32 × 3, u8 × 4 | (25) fog: style, start z, end z, density, color RGBA |
@@ -54,7 +54,7 @@ selectable, 1 human, 2 orc, 3 undead, 4 night elf. Player masks have a
 bit per player, bit 0 for Player 1.
 
 Map flags: 0x1 hide minimap in preview, 0x2 modify ally priorities, 0x4
-melee map, 0x8 playable size was large and never reduced, 0x10 masked
+melee map, 0x8 custom tileset, 0x10 masked
 areas partially visible, 0x20 fixed player settings for custom forces,
 0x40 custom forces, 0x80 custom tech tree, 0x100 custom abilities, 0x200
 custom upgrades, 0x400 properties menu opened, 0x800 waves on cliff

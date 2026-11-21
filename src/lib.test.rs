@@ -33,7 +33,7 @@ pub(crate) fn full(version: u32) -> Info {
         i.light_tileset = b'A';
         i.water_color = [255, 255, 255, 0];
     } else {
-        i.prologue_screen = 2;
+        i.game_data_set = -1;
     }
     if has.v28 {
         i.script = 1;
