@@ -67,7 +67,8 @@ pub struct Fog {
     pub start_z: f32,
     pub end_z: f32,
     pub density: f32,
-    /// As stored: red, green, blue, alpha.
+    /// As stored: blue, green, red, alpha (World Editor's script reads
+    /// it so: Blizzard's SavageStorm).
     pub color: [u8; 4],
 }
 
